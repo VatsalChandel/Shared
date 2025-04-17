@@ -1,10 +1,12 @@
+// /app/(protected)/explore.tsx
+
 import { Text, View, FlatList } from "react-native";
 import { collection, getDocs } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { db } from "../../firebase";
 
 
-export default function Explore() {
+export default function Calendar() {
     const [calendar, setCalendar] = useState<any[]>([]);
 
     useEffect(() => {

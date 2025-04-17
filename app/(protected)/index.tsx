@@ -1,3 +1,6 @@
+// /app/(protected)/index.tsx
+
+
 import { useEffect, useState } from "react";
 import { View, Text } from "react-native";
 import { auth, db } from "@/firebase";

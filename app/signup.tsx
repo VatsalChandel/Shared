@@ -1,3 +1,6 @@
+// /app/signup.tsx
+
+
 import { useState } from "react";
 import { Text, TextInput, View, Button } from "react-native";
 import { createUserWithEmailAndPassword } from "firebase/auth";
