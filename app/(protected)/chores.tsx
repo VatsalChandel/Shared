@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { View, Text, TextInput, Button, FlatList, Pressable } from "react-native";
 import { auth, db } from "@/firebase";
 import { doc, getDoc, collection, getDocs, addDoc, updateDoc, onSnapshot, deleteDoc} from "firebase/firestore";
+import Toast from "react-native-toast-message";
 
 export default function Chores() {
 
@@ -59,6 +60,8 @@ export default function Chores() {
     
         setChores([...chores, { id: newDoc.id, text: newChore.trim(), completed: false }]);
         setNewChore("");
+
+        
       };
 
       
@@ -67,6 +70,11 @@ export default function Chores() {
       
         const choreDoc = doc(db, `roommateGroups/${groupId}/chores`, choreId);
         await updateDoc(choreDoc, { completed: !current });
+
+        Toast.show({
+            type: "success",
+            text1: current ? "Chore marked as incomplete" : "Chore completed 🎉",
+        })
       };
       
 
@@ -75,6 +83,11 @@ export default function Chores() {
       
         const choreRef = doc(db, `roommateGroups/${groupId}/chores`, choreId);
         await deleteDoc(choreRef);
+
+        Toast.show({
+            type: "success",
+            text1: "Chore deleted successfully",
+        })
       };
 
       
