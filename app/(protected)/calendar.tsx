@@ -1,26 +1,13 @@
-// Full working calendar with create, edit (title/date/attendees), delete, and confirmation
+// Calendar with per-event state isolation for editing
 import { useEffect, useState } from "react";
 import {
-  Text,
-  View,
-  Button,
-  TextInput,
-  Pressable,
-  Platform,
-  Modal,
-  ScrollView,
-  Alert,
+  Text, View, Button, TextInput, Pressable, Platform,
+  Modal, ScrollView, Alert
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { auth, db } from "@/firebase";
 import {
-  collection,
-  doc,
-  getDoc,
-  onSnapshot,
-  addDoc,
-  deleteDoc,
-  updateDoc,
+  collection, doc, getDoc, onSnapshot, addDoc, deleteDoc, updateDoc
 } from "firebase/firestore";
 import { Calendar as RNCalendar, LocaleConfig } from "react-native-calendars";
 
@@ -39,11 +26,8 @@ export default function Calendar() {
   const [externalEmail, setExternalEmail] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
   const [modalEvents, setModalEvents] = useState<any[]>([]);
-  const [editDate, setEditDate] = useState<Date | null>(null);
-  const [editEventId, setEditEventId] = useState<string | null>(null);
-  const [editAttendees, setEditAttendees] = useState<string[]>([]);
-  const [editTitle, setEditTitle] = useState<string>("");
-  const [showEditDatePicker, setShowEditDatePicker] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<string | null>(null);
+  const [localState, setLocalState] = useState<Record<string, any>>({});
 
   useEffect(() => {
     let unsubscribe: () => void;
@@ -86,8 +70,10 @@ export default function Calendar() {
       Alert.alert("Invalid Date", "You can't create events in the past.");
       return;
     }
+
     const attending = [...selectedAttendees];
     if (externalEmail.trim()) attending.push(externalEmail.trim());
+
     const eventRef = collection(db, `roommateGroups/${groupId}/calendar`);
     await addDoc(eventRef, {
       title: newEventTitle,
@@ -105,31 +91,31 @@ export default function Calendar() {
       },
       attending,
     });
+
     setNewEventTitle("");
     setExternalEmail("");
     setSelectedAttendees([user.email]);
     setSelectedDate(new Date());
   };
 
-  const handleEditConfirm = async () => {
-    if (!groupId || !editEventId || !editDate || !editTitle.trim()) return;
-    await updateDoc(doc(db, `roommateGroups/${groupId}/calendar`, editEventId), {
-      title: editTitle.trim(),
-      date: editDate.toISOString(),
-      displayDate: editDate.toLocaleString([], {
+  const handleUpdateEvent = async (eventId: string) => {
+    const event = localState[eventId];
+    if (!groupId || !event) return;
+
+    await updateDoc(doc(db, `roommateGroups/${groupId}/calendar`, eventId), {
+      title: event.title,
+      date: event.date.toISOString(),
+      displayDate: event.date.toLocaleString([], {
         year: "numeric",
         month: "short",
         day: "numeric",
         hour: "2-digit",
         minute: "2-digit",
       }),
-      attending: editAttendees,
+      attending: event.attendees,
     });
-    setEditEventId(null);
-    setEditDate(null);
-    setEditAttendees([]);
-    setEditTitle("");
-    setShowEditDatePicker(false);
+
+    setEditingEvent(null);
     setModalVisible(false);
   };
 
@@ -139,18 +125,10 @@ export default function Calendar() {
     setModalVisible(false);
   };
 
-  const handleEditEvent = (eventId: string, updatedTitle: string) => {
-    setEditEventId(eventId);
-    setEditTitle(updatedTitle);
-  };
-
   const markedDates = events.reduce((acc, event) => {
     try {
       const dateKey = new Date(event.date).toISOString().split("T")[0];
-      acc[dateKey] = {
-        marked: true,
-        dotColor: "#00adf5",
-      };
+      acc[dateKey] = { marked: true, dotColor: "#00adf5" };
     } catch (err) {
       console.warn("Invalid event date:", event);
     }
@@ -168,77 +146,112 @@ export default function Calendar() {
             const dateStr = new Date(event.date).toISOString().split("T")[0];
             return dateStr === day.dateString;
           });
-          if (eventsForDay.length > 0) {
-            const first = eventsForDay[0];
-            setEditEventId(first.id);
-            setEditDate(new Date(first.date));
-            setEditTitle(first.title);
-            setEditAttendees(first.attending || []);
-          }
+
+          const state: Record<string, any> = {};
+          eventsForDay.forEach((e) => {
+            state[e.id] = {
+              title: e.title,
+              date: new Date(e.date),
+              attendees: e.attending || [],
+              showPicker: false,
+            };
+          });
+
+          setLocalState(state);
           setModalEvents(eventsForDay);
           setModalVisible(true);
         }}
         style={{ marginBottom: 20 }}
       />
 
-      <Modal visible={modalVisible} animationType="slide" transparent={true}>
+      {/* Modal for editing events */}
+      <Modal visible={modalVisible} animationType="slide" transparent>
         <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center" }}>
           <View style={{ backgroundColor: "white", padding: 20, borderRadius: 10, width: "90%" }}>
             <Text style={{ fontSize: 20, fontWeight: "bold", marginBottom: 10 }}>Events</Text>
-            {modalEvents.map((event, index) => (
-              <View key={index} style={{ marginBottom: 25, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: "#ccc" }}>
-                <Text style={{ fontWeight: "bold" }}>Title:</Text>
-                <TextInput
-                  value={editEventId === event.id ? editTitle : event.title}
-                  onChangeText={(text) => handleEditEvent(event.id, text)}
-                  style={{ borderWidth: 1, borderColor: "#ddd", borderRadius: 6, padding: 4, marginBottom: 4 }}
-                />
-                <Text style={{ fontWeight: "500", marginBottom: 2 }}>{event.displayDate}</Text>
-                <Text style={{ marginBottom: 2 }}>Created By: {event.createdBy?.email || "Unknown"}</Text>
-                <Text style={{ marginTop: 6 }}>Attending:</Text>
-                {roommates.map((email) => (
-                  <Pressable
-                    key={email}
-                    onPress={() => {
-                      if (!editAttendees.includes(email)) setEditAttendees((prev) => [...prev, email]);
-                      else setEditAttendees((prev) => prev.filter((e) => e !== email));
-                      setEditEventId(event.id);
-                    }}
-                  >
-                    <Text style={{ paddingLeft: 10 }}>
-                      {editAttendees.includes(email) ? "✅" : "⬜️"} {email}
-                    </Text>
-                  </Pressable>
-                ))}
-                <Button
-                  title="Edit Date"
-                  onPress={() => {
-                    setEditEventId(event.id);
-                    setEditDate(new Date(event.date));
-                    setShowEditDatePicker(true);
-                  }}
-                />
-                <Button title="Delete Event" color="red" onPress={() => handleDeleteEvent(event.id)} />
-              </View>
-            ))}
-            {showEditDatePicker && editDate && (
-              <DateTimePicker
-                value={editDate}
-                mode="datetime"
-                display={Platform.OS === "ios" ? "inline" : "default"}
-                onChange={(event, date) => {
-                  setShowEditDatePicker(false);
-                  if (date) setEditDate(date);
-                }}
-              />
-            )}
-            <Button title="Confirm Edit" onPress={handleEditConfirm} />
+            {modalEvents.map((event, index) => {
+              const local = localState[event.id];
+              return (
+                <View key={event.id} style={{ marginBottom: 20, borderBottomWidth: 1, borderColor: "#ddd", paddingBottom: 10 }}>
+                  <Text style={{ fontWeight: "bold" }}>Title:</Text>
+                  <TextInput
+                    value={local?.title}
+                    onChangeText={(text) =>
+                      setLocalState((prev) => ({
+                        ...prev,
+                        [event.id]: { ...prev[event.id], title: text },
+                      }))
+                    }
+                    style={{ borderWidth: 1, borderColor: "#ddd", borderRadius: 6, padding: 4, marginBottom: 4 }}
+                  />
+                  <Text style={{ fontWeight: "500", marginBottom: 2 }}>
+                    {local?.date?.toLocaleString([], { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                  </Text>
+                  <Text>Created By: {event.createdBy?.email || "Unknown"}</Text>
+                  <Text>Attending:</Text>
+                  {roommates.map((email) => (
+                    <Pressable
+                      key={email}
+                      onPress={() => {
+                        const attendees = local?.attendees || [];
+                        const updated = attendees.includes(email)
+                          ? attendees.filter((e) => e !== email)
+                          : [...attendees, email];
+                        setLocalState((prev) => ({
+                          ...prev,
+                          [event.id]: { ...prev[event.id], attendees: updated },
+                        }));
+                      }}
+                    >
+                      <Text style={{ paddingLeft: 10 }}>
+                        {local?.attendees?.includes(email) ? "✅" : "⬜️"} {email}
+                      </Text>
+                    </Pressable>
+                  ))}
+                  <Button
+                    title="Edit Date"
+                    onPress={() =>
+                      setLocalState((prev) => ({
+                        ...prev,
+                        [event.id]: { ...prev[event.id], showPicker: true },
+                      }))
+                    }
+                  />
+                  {local?.showPicker && (
+                    <DateTimePicker
+                      value={local.date}
+                      mode="datetime"
+                      display={Platform.OS === "ios" ? "inline" : "default"}
+                      onChange={(eventChange, date) => {
+                        if (date) {
+                          setLocalState((prev) => ({
+                            ...prev,
+                            [event.id]: {
+                              ...prev[event.id],
+                              date,
+                              showPicker: false,
+                            },
+                          }));
+                        } else {
+                          setLocalState((prev) => ({
+                            ...prev,
+                            [event.id]: { ...prev[event.id], showPicker: false },
+                          }));
+                        }
+                      }}
+                    />
+                  )}
+                  <Button title="Confirm Edit" onPress={() => handleUpdateEvent(event.id)} />
+                  <Button title="Delete Event" color="red" onPress={() => handleDeleteEvent(event.id)} />
+                </View>
+              );
+            })}
             <Button title="Close" onPress={() => setModalVisible(false)} />
           </View>
         </View>
       </Modal>
 
-      {/* Create new event section */}
+      {/* Create New Event Section */}
       <Text style={{ fontSize: 18, marginTop: 30 }}>Add New Event</Text>
       <TextInput
         placeholder="Event title"
@@ -248,7 +261,9 @@ export default function Calendar() {
       />
       <Pressable onPress={() => setShowDatePicker(true)}>
         <Text style={{ fontSize: 16, color: "blue" }}>
-          {selectedDate.toLocaleString([], { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })} (Tap to change)
+          {selectedDate.toLocaleString([], {
+            year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"
+          })} (Tap to change)
         </Text>
       </Pressable>
       {showDatePicker && (
@@ -264,7 +279,14 @@ export default function Calendar() {
       )}
       <Text style={{ marginTop: 15, fontSize: 16 }}>Select Attendees:</Text>
       {roommates.map((email, index) => (
-        <Pressable key={index} onPress={() => setSelectedAttendees((prev) => prev.includes(email) ? prev.filter((e) => e !== email) : [...prev, email])}>
+        <Pressable
+          key={index}
+          onPress={() =>
+            setSelectedAttendees((prev) =>
+              prev.includes(email) ? prev.filter((e) => e !== email) : [...prev, email]
+            )
+          }
+        >
           <Text style={{ marginLeft: 10, fontSize: 14 }}>
             {selectedAttendees.includes(email) ? "✅" : "⬜️"} {email}
           </Text>
