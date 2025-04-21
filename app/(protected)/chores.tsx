@@ -1,3 +1,6 @@
+// /app/(protected)/chores.tsx
+
+
 import { useEffect, useState } from "react";
 import { View, Text, TextInput, Button, FlatList, Pressable } from "react-native";
 import { auth, db } from "@/firebase";
@@ -22,6 +25,7 @@ export default function Chores() {
           const userSnap = await getDoc(userRef);
           const groupId = userSnap.data()?.groupId;
           setGroupId(groupId);
+          setUserName(userSnap.data()?.name);
       
           if (!groupId) return;
       
@@ -114,7 +118,7 @@ export default function Chores() {
               
                   {item.createdBy?.email && (
                     <Text style={{ fontSize: 12, color: "gray", marginLeft: 10 }}>
-                      Added by: {item.createdBy.email}
+                      Added by: {item.createdBy.name}
                     </Text>
                   )}
               
