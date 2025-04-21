@@ -43,6 +43,7 @@ export default function Calendar() {
   const [editEventId, setEditEventId] = useState<string | null>(null);
   const [editAttendees, setEditAttendees] = useState<string[]>([]);
   const [editTitle, setEditTitle] = useState<string>("");
+  const [showEditDatePicker, setShowEditDatePicker] = useState(false);
 
   useEffect(() => {
     let unsubscribe: () => void;
@@ -128,6 +129,7 @@ export default function Calendar() {
     setEditDate(null);
     setEditAttendees([]);
     setEditTitle("");
+    setShowEditDatePicker(false);
     setModalVisible(false);
   };
 
@@ -166,19 +168,16 @@ export default function Calendar() {
             const dateStr = new Date(event.date).toISOString().split("T")[0];
             return dateStr === day.dateString;
           });
-        
           if (eventsForDay.length > 0) {
-            const first = eventsForDay[0]; // or whichever event you want to edit first
+            const first = eventsForDay[0];
             setEditEventId(first.id);
             setEditDate(new Date(first.date));
             setEditTitle(first.title);
             setEditAttendees(first.attending || []);
           }
-        
           setModalEvents(eventsForDay);
           setModalVisible(true);
         }}
-        
         style={{ marginBottom: 20 }}
       />
 
@@ -187,16 +186,16 @@ export default function Calendar() {
           <View style={{ backgroundColor: "white", padding: 20, borderRadius: 10, width: "90%" }}>
             <Text style={{ fontSize: 20, fontWeight: "bold", marginBottom: 10 }}>Events</Text>
             {modalEvents.map((event, index) => (
-              <View key={index} style={{ marginBottom: 15 }}>
+              <View key={index} style={{ marginBottom: 25, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: "#ccc" }}>
                 <Text style={{ fontWeight: "bold" }}>Title:</Text>
                 <TextInput
                   value={editEventId === event.id ? editTitle : event.title}
                   onChangeText={(text) => handleEditEvent(event.id, text)}
                   style={{ borderWidth: 1, borderColor: "#ddd", borderRadius: 6, padding: 4, marginBottom: 4 }}
                 />
-                <Text>Date: {event.displayDate || event.date}</Text>
-                <Text>Created By: {event.createdBy?.email || "Unknown"}</Text>
-                <Text>Attending:</Text>
+                <Text style={{ fontWeight: "500", marginBottom: 2 }}>{event.displayDate}</Text>
+                <Text style={{ marginBottom: 2 }}>Created By: {event.createdBy?.email || "Unknown"}</Text>
+                <Text style={{ marginTop: 6 }}>Attending:</Text>
                 {roommates.map((email) => (
                   <Pressable
                     key={email}
@@ -206,7 +205,7 @@ export default function Calendar() {
                       setEditEventId(event.id);
                     }}
                   >
-                    <Text>
+                    <Text style={{ paddingLeft: 10 }}>
                       {editAttendees.includes(email) ? "✅" : "⬜️"} {email}
                     </Text>
                   </Pressable>
@@ -216,19 +215,19 @@ export default function Calendar() {
                   onPress={() => {
                     setEditEventId(event.id);
                     setEditDate(new Date(event.date));
-                    setShowDatePicker(true);
+                    setShowEditDatePicker(true);
                   }}
                 />
                 <Button title="Delete Event" color="red" onPress={() => handleDeleteEvent(event.id)} />
               </View>
             ))}
-            {editDate && (
+            {showEditDatePicker && editDate && (
               <DateTimePicker
                 value={editDate}
                 mode="datetime"
                 display={Platform.OS === "ios" ? "inline" : "default"}
                 onChange={(event, date) => {
-                  setShowDatePicker(false);
+                  setShowEditDatePicker(false);
                   if (date) setEditDate(date);
                 }}
               />
@@ -238,34 +237,20 @@ export default function Calendar() {
           </View>
         </View>
       </Modal>
-    <Text style={{ fontSize: 18, marginTop: 20 }}>Add New Event</Text>
 
+      {/* Create new event section */}
+      <Text style={{ fontSize: 18, marginTop: 30 }}>Add New Event</Text>
       <TextInput
         placeholder="Event title"
         value={newEventTitle}
         onChangeText={setNewEventTitle}
-        style={{
-          borderWidth: 1,
-          borderColor: "#ccc",
-          padding: 8,
-          borderRadius: 6,
-          marginTop: 10,
-          marginBottom: 10,
-        }}
+        style={{ borderWidth: 1, borderColor: "#ccc", padding: 8, borderRadius: 6, marginTop: 10, marginBottom: 10 }}
       />
-
       <Pressable onPress={() => setShowDatePicker(true)}>
         <Text style={{ fontSize: 16, color: "blue" }}>
-          {selectedDate.toLocaleString([], {
-            year: "numeric",
-            month: "short",
-            day: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-          })} (Tap to change)
+          {selectedDate.toLocaleString([], { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })} (Tap to change)
         </Text>
       </Pressable>
-
       {showDatePicker && (
         <DateTimePicker
           value={selectedDate}
@@ -277,27 +262,20 @@ export default function Calendar() {
           }}
         />
       )}
-
       <Text style={{ marginTop: 15, fontSize: 16 }}>Select Attendees:</Text>
       {roommates.map((email, index) => (
-        <Pressable
-          key={index}
-          onPress={() =>
-            setSelectedAttendees((prev) =>
-              prev.includes(email)
-                ? prev.filter((e) => e !== email)
-                : [...prev, email]
-            )
-          }
-        >
+        <Pressable key={index} onPress={() => setSelectedAttendees((prev) => prev.includes(email) ? prev.filter((e) => e !== email) : [...prev, email])}>
           <Text style={{ marginLeft: 10, fontSize: 14 }}>
             {selectedAttendees.includes(email) ? "✅" : "⬜️"} {email}
           </Text>
         </Pressable>
       ))}
-
-      
-
+      <TextInput
+        placeholder="Invite someone via email"
+        value={externalEmail}
+        onChangeText={setExternalEmail}
+        style={{ borderWidth: 1, borderColor: "#ccc", padding: 8, borderRadius: 6, marginVertical: 10 }}
+      />
       <Button title="Add Event" onPress={handleAddEvent} />
     </ScrollView>
   );
