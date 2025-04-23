@@ -1,3 +1,6 @@
+// /app/(protected)/profile.tsx
+
+
 import { useEffect, useState } from "react";
 import { View, Text, Button } from "react-native";
 import { auth, db } from "@/firebase";

@@ -1,3 +1,6 @@
+// /app/login.tsx
+
+
 import { useState } from "react";
 import { Text, TextInput, View, Button } from "react-native";
 import { signInWithEmailAndPassword } from "firebase/auth";

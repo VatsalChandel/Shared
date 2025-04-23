@@ -1,3 +1,5 @@
+// /app/(protected)/_layout.tsx
+
 import { Tabs, useRouter, useSegments } from "expo-router";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { Colors } from "@/constants/Colors";
@@ -85,6 +87,7 @@ export default function ProtectedLayout() {
         }),
       }}
     >
+
       <Tabs.Screen
         name="index"
         options={{
@@ -92,10 +95,20 @@ export default function ProtectedLayout() {
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
         }}
       />
+
       <Tabs.Screen
-        name="explore"
+        name="chores"
         options={{
-          title: "Explore",
+          title: "Chores",
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="list.bullet" color={color} />,
+        }}
+      />
+
+
+      <Tabs.Screen
+        name="calendar"
+        options={{
+          title: "Calendar",
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
         }}
       />
