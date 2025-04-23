@@ -1,5 +1,5 @@
 // /app/(protected)/index.tsx
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { View, Text, ScrollView, SafeAreaView } from "react-native";
 import { auth, db } from "@/firebase";
 import {
@@ -12,6 +12,9 @@ import {
 import * as Clipboard from "expo-clipboard";
 import * as Sharing from "expo-sharing";
 import { Alert, Pressable } from "react-native";
+
+import { ThemeContext } from "../ThemeContext";
+
 
 
 
@@ -129,93 +132,86 @@ export default function Index() {
       event.attending?.includes(user?.email)
   );
 
-  return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#f9f9f9" }}>
-      <View style={{ padding: 20}}>
-       <Text style={{ fontSize: 26, fontWeight: "600", marginBottom: 10 }}>
-          Welcome, {userName} 👋
-        </Text>
-        <Text style={{ fontSize: 18, color: "#555", marginBottom: 10 }}>
-          Pod Name: <Text style={{ fontWeight: "500" }}>{groupName}</Text>
-        </Text>
+    const { theme } = useContext(ThemeContext);
+    const isDark = theme === "dark";
 
-        <Pressable
-  onPress={async () => {
-    await Clipboard.setStringAsync(inviteCode);
-    Alert.alert("Copied!", "Invite code copied to clipboard", [
-      { text: "OK" },
-      {
-        text: "Share...",
-        onPress: () => {
-          if (Sharing.isAvailableAsync()) {
-            Sharing.shareAsync("", {
+return (
+  <SafeAreaView style={{ flex: 1, backgroundColor: isDark ? "#121212" : "#f9f9f9" }}>
+    <View style={{ padding: 20 }}>
+      <Text style={{ fontSize: 26, fontWeight: "600", marginBottom: 10, color: isDark ? "#fff" : "#000" }}>
+        Welcome, {userName} 👋
+      </Text>
+      <Text style={{ fontSize: 18, color: isDark ? "#ccc" : "#555", marginBottom: 10 }}>
+        Pod Name: <Text style={{ fontWeight: "500", color: isDark ? "#fff" : "#000" }}>{groupName}</Text>
+      </Text>
+
+      <Pressable
+        onPress={async () => {
+          await Clipboard.setStringAsync(inviteCode);
+          if (await Sharing.isAvailableAsync()) {
+            await Sharing.shareAsync("", {
               dialogTitle: "Share your group invite code",
               UTI: "public.text",
               mimeType: "text/plain",
             });
           }
-        },
-      },
-    ]);
-  }}
->
-  <Text style={{ fontSize: 16, color: "#666", marginBottom: 20 }}>
-    Invite Code:{" "}
-    <Text style={{ fontWeight: "bold", color: "#007AFF", textDecorationLine: "underline" }}>
-      {inviteCode} (tap to share)
-    </Text>
-  </Text>
-</Pressable>
+        }}
+      >
+        <Text style={{ fontSize: 16, color: isDark ? "#aaa" : "#666", marginBottom: 20 }}>
+          Invite Code:{" "}
+          <Text style={{ fontWeight: "bold", color: "#007AFF", textDecorationLine: "underline" }}>
+            {inviteCode} (tap to share)
+          </Text>
+        </Text>
+      </Pressable>
+    </View>
 
-
-
+    <ScrollView style={{ flex: 1, backgroundColor: isDark ? "#121212" : "#f9f9f9" }}>
+      <View style={{ marginBottom: 20, backgroundColor: isDark ? "#1e1e1e" : "#fff", padding: 15, borderRadius: 12 }}>
+        <Text style={{ fontSize: 18, fontWeight: "600", marginBottom: 8, color: isDark ? "#fff" : "#000" }}>Roommates</Text>
+        {roommates.map((email, i) => (
+          <Text key={i} style={{ fontSize: 16, color: isDark ? "#ccc" : "#333", marginLeft: 8 }}>• {email}</Text>
+        ))}
       </View>
 
-      <ScrollView style={{ flex: 1, backgroundColor: "#f9f9f9" }}>
-       
+      <View style={{ marginBottom: 20, backgroundColor: isDark ? "#1e1e1e" : "#fff", padding: 15, borderRadius: 12 }}>
+        <Text style={{ fontSize: 18, fontWeight: "600", marginBottom: 8, color: isDark ? "#fff" : "#000" }}>Your Chores</Text>
+        {myChores.length > 0 ? (
+          myChores.map((chore, index) => (
+            <Text key={index} style={{ fontSize: 16, marginLeft: 8, color: isDark ? "#ccc" : "#444" }}>
+              • {chore.text} {chore.completed ? "✅" : ""}
+            </Text>
+          ))
+        ) : (
+          <Text style={{ fontSize: 16, marginLeft: 8, fontStyle: "italic", color: "gray" }}>
+            You have no chores.
+          </Text>
+        )}
+      </View>
 
-        <View style={{ marginBottom: 20, backgroundColor: "#fff", padding: 15, borderRadius: 12, shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 4 }}>
-          <Text style={{ fontSize: 18, fontWeight: "600", marginBottom: 8 }}>Roommates</Text>
-          {roommates.map((email, i) => (
-            <Text key={i} style={{ fontSize: 16, color: "#333", marginLeft: 8 }}>• {email}</Text>
-          ))}
-        </View>
-
-        <View style={{ marginBottom: 20, backgroundColor: "#fff", padding: 15, borderRadius: 12, shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 4 }}>
-          <Text style={{ fontSize: 18, fontWeight: "600", marginBottom: 8 }}>Your Chores</Text>
-          {myChores.length > 0 ? (
-            myChores.map((chore, index) => (
-              <Text key={index} style={{ fontSize: 16, marginLeft: 8, color: "#444" }}>
-                • {chore.text} {chore.completed ? "✅" : ""}
+      <View style={{ marginBottom: 20, backgroundColor: isDark ? "#1e1e1e" : "#fff", padding: 15, borderRadius: 12 }}>
+        <Text style={{ fontSize: 18, fontWeight: "600", marginBottom: 8, color: isDark ? "#fff" : "#000" }}>Your Events</Text>
+        {myEvents.length > 0 ? (
+          myEvents.map((event, index) => (
+            <View key={index} style={{ marginBottom: 10 }}>
+              <Text style={{ fontSize: 16, fontWeight: "500", color: isDark ? "#eee" : "#333" }}>
+                {event.title}
               </Text>
-            ))
-          ) : (
-            <Text style={{ fontSize: 16, marginLeft: 8, fontStyle: "italic", color: "gray" }}>
-              You have no chores.
-            </Text>
-          )}
-        </View>
+              <Text style={{ fontSize: 14, color: isDark ? "#aaa" : "#666" }}>
+                📅 {event.displayDate}
+              </Text>
+            </View>
+          ))
+        ) : (
+          <Text style={{ fontSize: 16, marginLeft: 8, fontStyle: "italic", color: "gray" }}>
+            You have no events.
+          </Text>
+        )}
+      </View>
+    </ScrollView>
+  </SafeAreaView>
+);
 
-        <View style={{ marginBottom: 20, backgroundColor: "#fff", padding: 15, borderRadius: 12, shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 4 }}>
-          <Text style={{ fontSize: 18, fontWeight: "600", marginBottom: 8 }}>Your Events</Text>
-          {myEvents.length > 0 ? (
-            myEvents.map((event, index) => (
-              <View key={index} style={{ marginBottom: 10 }}>
-                <Text style={{ fontSize: 16, fontWeight: "500", color: "#333" }}>
-                  {event.title}
-                </Text>
-                <Text style={{ fontSize: 14, color: "#666" }}>
-                  📅 {event.displayDate}
-                </Text>
-              </View>
-            ))
-          ) : (
-            <Text style={{ fontSize: 16, marginLeft: 8, fontStyle: "italic", color: "gray" }}>
-              You have no events.
-            </Text>
-          )}
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
+
+
 }

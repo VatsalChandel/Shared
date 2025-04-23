@@ -23,6 +23,10 @@ import {
 import Toast from "react-native-toast-message";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { useContext } from "react";
+import { ThemeContext } from "../ThemeContext";
+
+
 export default function Chores() {
   const user = auth.currentUser;
   const [groupId, setGroupId] = useState<string | null>(null);
@@ -114,115 +118,127 @@ export default function Chores() {
     Toast.show({ type: "success", text1: "Chore deleted successfully" });
   };
 
+const { theme } = useContext(ThemeContext);
+const isDark = theme === "dark";
+const themedBackground = isDark ? "#121212" : "#f9f9f9";
+const themedText = isDark ? "#f1f1f1" : "#333";
+const cardBackground = isDark ? "#1e1e1e" : "#fff";
+const borderColor = isDark ? "#444" : "#ccc";
+
+
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#f9f9f9" }}>
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={80}
-      >
-        <Text style={{padding:20, fontSize: 24, fontWeight: "bold" }}>
-                Group Chores
-              </Text>
-        <FlatList
-          ListHeaderComponent={
-            <View style={{ padding: 20 }}>
-              
-              {chores.length === 0 && (
-                <Text style={{ fontSize: 16, fontStyle: "italic", color: "gray" }}>
-                  No chores yet!
-                </Text>
-              )}
-            </View>
-          }
-          data={chores}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 120 }}
-          renderItem={({ item }) => (
-            <View
-              style={{
-                backgroundColor: "#fff",
-                borderRadius: 10,
-                padding: 12,
-                marginBottom: 12,
-                shadowColor: "#000",
-                shadowOpacity: 0.05,
-                shadowRadius: 4,
-              }}
-            >
-              <Pressable onPress={() => toggleChoreCompleted(item.id, item.completed)}>
-                <Text
-                  style={{
-                    fontSize: 18,
-                    color: item.completed ? "gray" : "#333",
-                    textDecorationLine: item.completed ? "line-through" : "none",
-                    marginBottom: 4,
-                  }}
-                >
-                  {item.completed ? "✅" : "⬜️"} {item.text}
-                </Text>
-              </Pressable>
-              <Text style={{ fontSize: 12, color: "#666", marginLeft: 4 }}>
-                Added by: {item.createdBy?.name}
-              </Text>
-              <Text style={{ fontSize: 12, color: "#666", marginLeft: 4 }}>
-                Assigned to: {Array.isArray(item.assignedTo) ? item.assignedTo.join(", ") : "N/A"}
-              </Text>
-              {item.completed && (
-                <Pressable onPress={() => handleDeleteChore(item.id)}>
-                  <Text style={{ color: "red", fontSize: 14, marginTop: 6 }}>🗑 Delete chore</Text>
-                </Pressable>
-              )}
-            </View>
+<SafeAreaView style={{ flex: 1, backgroundColor: themedBackground }}>
+  <KeyboardAvoidingView
+    style={{ flex: 1 }}
+    behavior={Platform.OS === "ios" ? "padding" : "height"}
+    keyboardVerticalOffset={80}
+  >
+    <Text style={{ padding: 20, fontSize: 24, fontWeight: "bold", color: themedText }}>
+      Group Chores
+    </Text>
+
+    <FlatList
+      ListHeaderComponent={
+        <View style={{ padding: 20 }}>
+          {chores.length === 0 && (
+            <Text style={{ fontSize: 16, fontStyle: "italic", color: isDark ? "#aaa" : "gray" }}>
+              No chores yet!
+            </Text>
           )}
-          ListFooterComponent={
-            <View
+        </View>
+      }
+      data={chores}
+      keyExtractor={(item) => item.id}
+      contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 120 }}
+      renderItem={({ item }) => (
+        <View
+          style={{
+            backgroundColor: cardBackground,
+            borderRadius: 10,
+            padding: 12,
+            marginBottom: 12,
+            shadowColor: "#000",
+            shadowOpacity: 0.05,
+            shadowRadius: 4,
+          }}
+        >
+          <Pressable onPress={() => toggleChoreCompleted(item.id, item.completed)}>
+            <Text
               style={{
-                marginTop: 20,
-                backgroundColor: "#fff",
-                borderRadius: 10,
-                padding: 12,
-                shadowColor: "#000",
-                shadowOpacity: 0.05,
-                shadowRadius: 4,
+                fontSize: 18,
+                color: item.completed ? "gray" : themedText,
+                textDecorationLine: item.completed ? "line-through" : "none",
+                marginBottom: 4,
               }}
             >
-              <Text style={{ fontSize: 18, fontWeight: "500", marginBottom: 6 }}>Add a Chore</Text>
-              <TextInput
-                value={newChore}
-                onChangeText={setNewChore}
-                placeholder="Type chore here..."
-                style={{
-                  borderWidth: 1,
-                  borderColor: "#ccc",
-                  padding: 10,
-                  borderRadius: 6,
-                  marginBottom: 10,
-                }}
-              />
-              <Text style={{ fontWeight: "600", marginBottom: 6 }}>Assign To:</Text>
-              {roommates.map((email, index) => (
-                <Pressable
-                  key={index}
-                  onPress={() =>
-                    setAssignedTo((prev) =>
-                      prev.includes(email)
-                        ? prev.filter((e) => e !== email)
-                        : [...prev, email]
-                    )
-                  }
-                >
-                  <Text style={{ marginLeft: 10, fontSize: 14 }}>
-                    {assignedTo.includes(email) ? "✅" : "⬜️"} {email}
-                  </Text>
-                </Pressable>
-              ))}
-              <Button title="Add Chore" onPress={handleAddChore} />
-            </View>
-          }
-        />
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+              {item.completed ? "✅" : "⬜️"} {item.text}
+            </Text>
+          </Pressable>
+          <Text style={{ fontSize: 12, color: isDark ? "#ccc" : "#666", marginLeft: 4 }}>
+            Added by: {item.createdBy?.name}
+          </Text>
+          <Text style={{ fontSize: 12, color: isDark ? "#ccc" : "#666", marginLeft: 4 }}>
+            Assigned to: {Array.isArray(item.assignedTo) ? item.assignedTo.join(", ") : "N/A"}
+          </Text>
+          {item.completed && (
+            <Pressable onPress={() => handleDeleteChore(item.id)}>
+              <Text style={{ color: "red", fontSize: 14, marginTop: 6 }}>🗑 Delete chore</Text>
+            </Pressable>
+          )}
+        </View>
+      )}
+      ListFooterComponent={
+        <View
+          style={{
+            marginTop: 20,
+            backgroundColor: cardBackground,
+            borderRadius: 10,
+            padding: 12,
+            shadowColor: "#000",
+            shadowOpacity: 0.05,
+            shadowRadius: 4,
+          }}
+        >
+          <Text style={{ fontSize: 18, fontWeight: "500", marginBottom: 6, color: themedText }}>Add a Chore</Text>
+          <TextInput
+            value={newChore}
+            onChangeText={setNewChore}
+            placeholder="Type chore here..."
+            placeholderTextColor={isDark ? "#aaa" : "#666"}
+            style={{
+              borderWidth: 1,
+              borderColor: borderColor,
+              color: themedText,
+              padding: 10,
+              borderRadius: 6,
+              marginBottom: 10,
+            }}
+          />
+          <Text style={{ fontWeight: "600", marginBottom: 6, color: themedText }}>Assign To:</Text>
+          {roommates.map((email, index) => (
+            <Pressable
+              key={index}
+              onPress={() =>
+                setAssignedTo((prev) =>
+                  prev.includes(email) ? prev.filter((e) => e !== email) : [...prev, email]
+                )
+              }
+            >
+              <Text style={{ marginLeft: 10, fontSize: 14, color: themedText }}>
+                {assignedTo.includes(email) ? "✅" : "⬜️"} {email}
+              </Text>
+            </Pressable>
+          ))}
+          <Button title="Add Chore" onPress={handleAddChore} />
+        </View>
+      }
+    />
+  </KeyboardAvoidingView>
+</SafeAreaView>
+
+
+
+
   );
   
 }

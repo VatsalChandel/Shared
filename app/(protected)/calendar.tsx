@@ -13,11 +13,17 @@ import {
 import { Calendar as RNCalendar, LocaleConfig } from "react-native-calendars";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { useContext } from "react";
+import { ThemeContext } from '.././ThemeContext';
+
+
 
 LocaleConfig.locales["en"] = LocaleConfig.locales[""];
 LocaleConfig.defaultLocale = "en";
 
 export default function Calendar() {
+  const { theme } = useContext(ThemeContext); // 👈 gets the current theme
+
   const user = auth.currentUser;
   const [groupId, setGroupId] = useState<string | null>(null);
   const [events, setEvents] = useState<any[]>([]);
@@ -134,172 +140,235 @@ export default function Calendar() {
   }, {} as Record<string, any>);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#f9f9f9" }}>
-    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"} keyboardVerticalOffset={80}>
-      <Text style={{ padding:20, fontSize: 24, fontWeight: "bold" }}>Group Calendar</Text>
-
-      <ScrollView contentContainerStyle={{ padding: 20, backgroundColor: "#f9f9f9", paddingBottom: 120 }}>
-
-        <RNCalendar
-          markedDates={markedDates}
-          onDayPress={(day) => {
-            const eventsForDay = events.filter((event) => {
-              try {
-                const date = typeof event.date === "string" ? new Date(event.date) : new Date(event.date?.seconds * 1000);
-                return date.toISOString().startsWith(day.dateString);
-              } catch {
-                return false;
-              }
-            });
-
-            const state: Record<string, any> = {};
-            eventsForDay.forEach((e) => {
-              state[e.id] = {
-                title: e.title,
-                date: typeof e.date === "string" ? new Date(e.date) : new Date(e.date?.seconds * 1000),
-                attendees: e.attending || [],
-              };
-            });
-
-            setLocalState(state);
-            setModalEvents(eventsForDay);
-            setModalVisible(true);
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme === "dark" ? "#000" : "#f9f9f9" }}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={80}
+      >
+        <Text style={{
+          padding: 20,
+          fontSize: 24,
+          fontWeight: "bold",
+          color: theme === "dark" ? "#fff" : "#000"
+        }}>
+          Group Calendar
+        </Text>
+  
+        <ScrollView
+          contentContainerStyle={{
+            padding: 20,
+            backgroundColor: theme === "dark" ? "#000" : "#f9f9f9",
+            paddingBottom: 120,
           }}
-          style={{ marginBottom: 20 }}
-        />
-
-        <View style={{ backgroundColor: "#fff", borderRadius: 10, padding: 16, shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 4, marginBottom: 30 }}>
-          <Text style={{ fontSize: 18, fontWeight: "600", marginBottom: 10 }}>Add New Event</Text>
-          <TextInput
-            placeholder="Event title"
-            value={newEventTitle}
-            onChangeText={setNewEventTitle}
-            style={{ borderWidth: 1, borderColor: "#ccc", padding: 10, borderRadius: 6, marginBottom: 10 }}
+        >
+          <RNCalendar
+          key={theme}
+            markedDates={markedDates}
+            onDayPress={(day) => {
+              const eventsForDay = events.filter((event) => {
+                try {
+                  const date = typeof event.date === "string" ? new Date(event.date) : new Date(event.date?.seconds * 1000);
+                  return date.toISOString().startsWith(day.dateString);
+                } catch {
+                  return false;
+                }
+              });
+  
+              const state: Record<string, any> = {};
+              eventsForDay.forEach((e) => {
+                state[e.id] = {
+                  title: e.title,
+                  date: typeof e.date === "string" ? new Date(e.date) : new Date(e.date?.seconds * 1000),
+                  attendees: e.attending || [],
+                };
+              });
+  
+              setLocalState(state);
+              setModalEvents(eventsForDay);
+              setModalVisible(true);
+            }}
+                style={{ marginBottom: 20 }}
+            theme={{
+              calendarBackground: theme === "dark" ? "#000" : "#fff",
+              dayTextColor: theme === "dark" ? "#fff" : "#000",
+              monthTextColor: theme === "dark" ? "#fff" : "#000",
+              arrowColor: theme === "dark" ? "#fff" : "#000",
+              todayTextColor: theme === "dark" ? "#4da6ff" : "#00adf5",
+              selectedDayBackgroundColor: theme === "dark" ? "#444" : "#cce5ff",
+              selectedDayTextColor: theme === "dark" ? "#fff" : "#000",
+            }}
           />
-          <Pressable onPress={() => setShowDatePicker(true)}>
-            <Text style={{ fontSize: 16, color: "blue", marginBottom: 10 }}>
-              📅 {selectedDate.toLocaleString()} (Tap to change)
+  
+          <View style={{
+            backgroundColor: theme === "dark" ? "#1a1a1a" : "#fff",
+            borderRadius: 10,
+            padding: 16,
+            shadowColor: "#000",
+            shadowOpacity: 0.05,
+            shadowRadius: 4,
+            marginBottom: 30
+          }}>
+            <Text style={{ fontSize: 18, fontWeight: "600", marginBottom: 10, color: theme === "dark" ? "#fff" : "#000" }}>
+              Add New Event
             </Text>
-          </Pressable>
-          {showDatePicker && (
-            <DateTimePicker
-              value={selectedDate}
-              mode="datetime"
-              display={Platform.OS === "ios" ? "inline" : "default"}
-              onChange={(e, date) => {
-                setShowDatePicker(false);
-                if (date) setSelectedDate(date);
+            <TextInput
+              placeholder="Event title"
+              placeholderTextColor={theme === "dark" ? "#aaa" : "#666"}
+              value={newEventTitle}
+              onChangeText={setNewEventTitle}
+              style={{
+                borderWidth: 1,
+                borderColor: "#ccc",
+                padding: 10,
+                borderRadius: 6,
+                marginBottom: 10,
+                color: theme === "dark" ? "#fff" : "#000"
               }}
             />
-          )}
-          <Text style={{ fontWeight: "500", marginBottom: 6 }}>Select Attendees:</Text>
-          {roommates.map((email, i) => (
-            <Pressable key={i} onPress={() =>
-              setSelectedAttendees((prev) =>
-                prev.includes(email) ? prev.filter((e) => e !== email) : [...prev, email]
-              )
-            }>
-              <Text style={{ fontSize: 14, paddingLeft: 4 }}>
-                {selectedAttendees.includes(email) ? "✅" : "⬜️"} {email}
+            <Pressable onPress={() => setShowDatePicker(true)}>
+              <Text style={{ fontSize: 16, color: theme === "dark" ? "#4da6ff" : "blue", marginBottom: 10 }}>
+                📅 {selectedDate.toLocaleString()} (Tap to change)
               </Text>
             </Pressable>
-          ))}
-          <Button title="Add Event" onPress={handleAddEvent} />
-        </View>
-      </ScrollView>
-
-      <Modal visible={modalVisible} animationType="slide" transparent>
-        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center" }}>
-        <View
-            style={{
-              backgroundColor: "white",
+            {showDatePicker && (
+              <DateTimePicker
+                value={selectedDate}
+                mode="datetime"
+                display={Platform.OS === "ios" ? "inline" : "default"}
+                onChange={(e, date) => {
+                  setShowDatePicker(false);
+                  if (date) setSelectedDate(date);
+                }}
+              />
+            )}
+            <Text style={{ fontWeight: "500", marginBottom: 6, color: theme === "dark" ? "#fff" : "#000" }}>
+              Select Attendees:
+            </Text>
+            {roommates.map((email, i) => (
+              <Pressable
+                key={i}
+                onPress={() =>
+                  setSelectedAttendees((prev) =>
+                    prev.includes(email) ? prev.filter((e) => e !== email) : [...prev, email]
+                  )
+                }
+              >
+                <Text style={{ fontSize: 14, paddingLeft: 4, color: theme === "dark" ? "#fff" : "#000" }}>
+                  {selectedAttendees.includes(email) ? "✅" : "⬜️"} {email}
+                </Text>
+              </Pressable>
+            ))}
+            <Button title="Add Event" onPress={handleAddEvent} />
+          </View>
+        </ScrollView>
+  
+        <Modal visible={modalVisible} animationType="slide" transparent>
+          <View style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.5)",
+            justifyContent: "center",
+            alignItems: "center"
+          }}>
+            <View style={{
+              backgroundColor: theme === "dark" ? "#1a1a1a" : "#fff",
               borderRadius: 10,
               width: "90%",
               maxHeight: "80%",
-              paddingVertical: 10,
-            }}
-          >
-            <ScrollView
-              contentContainerStyle={{
-                paddingHorizontal: 20,
-                paddingBottom: 20,
-              }}
-            >
-              <Text style={{ fontSize: 20, fontWeight: "bold", marginBottom: 10 }}>
-                Events
-              </Text>
-
-            {modalEvents.map((event) => {
-              const local = localState[event.id];
-              if (!local) return null;
-
-              const isEditing = editingEvent === event.id;
-
-              return (
-                <View key={event.id} style={{ marginBottom: 16, paddingBottom: 10, borderBottomWidth: 1, borderColor: "#eee" }}>
-                  <Text style={{ fontSize: 16, fontWeight: "600" }}>{event.title}</Text>
-                  <Text style={{ fontSize: 14, color: "#555" }}>{event.displayDate}</Text>
-                  <Text style={{ fontSize: 13, color: "#888" }}>Created by: {event.createdBy?.email}</Text>
-
-                  {isEditing ? (
-                    <>
-                      <TextInput
-                        value={local.title}
-                        onChangeText={(text) => setLocalState((prev) => ({
-                          ...prev,
-                          [event.id]: { ...prev[event.id], title: text }
-                        }))}
-                        style={{ borderWidth: 1, borderColor: "#ccc", padding: 8, borderRadius: 6, marginTop: 10 }}
-                      />
-                      <DateTimePicker
-                        value={local.date}
-                        mode="datetime"
-                        display={Platform.OS === "ios" ? "inline" : "default"}
-                        onChange={(e, date) => {
-                          if (date) {
-                            setLocalState((prev) => ({
+              paddingVertical: 10
+            }}>
+              <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 20 }}>
+                <Text style={{ fontSize: 20, fontWeight: "bold", marginBottom: 10, color: theme === "dark" ? "#fff" : "#000" }}>
+                  Events
+                </Text>
+  
+                {modalEvents.map((event) => {
+                  const local = localState[event.id];
+                  if (!local) return null;
+                  const isEditing = editingEvent === event.id;
+  
+                  return (
+                    <View key={event.id} style={{ marginBottom: 16, paddingBottom: 10, borderBottomWidth: 1, borderColor: "#eee" }}>
+                      <Text style={{ fontSize: 16, fontWeight: "600", color: theme === "dark" ? "#fff" : "#000" }}>
+                        {event.title}
+                      </Text>
+                      <Text style={{ fontSize: 14, color: theme === "dark" ? "#bbb" : "#555" }}>
+                        {event.displayDate}
+                      </Text>
+                      <Text style={{ fontSize: 13, color: "#888" }}>
+                        Created by: {event.createdBy?.email}
+                      </Text>
+  
+                      {isEditing ? (
+                        <>
+                          <TextInput
+                            value={local.title}
+                            onChangeText={(text) => setLocalState((prev) => ({
                               ...prev,
-                              [event.id]: { ...prev[event.id], date }
-                            }));
-                          }
-                        }}
-                      />
-                      <Text style={{ fontWeight: "600", marginTop: 10 }}>Edit Attendees:</Text>
-                      {roommates.map((email) => (
-                        <Pressable key={email} onPress={() => {
-                          const current = local.attendees || [];
-                          const updated = current.includes(email)
-                            ? current.filter((e) => e !== email)
-                            : [...current, email];
-
-                          setLocalState((prev) => ({
-                            ...prev,
-                            [event.id]: { ...prev[event.id], attendees: updated }
-                          }));
-                        }}>
-                          <Text style={{ paddingLeft: 10 }}>
-                            {local.attendees?.includes(email) ? "✅" : "⬜️"} {email}
+                              [event.id]: { ...prev[event.id], title: text }
+                            }))}
+                            style={{
+                              borderWidth: 1,
+                              borderColor: "#ccc",
+                              padding: 8,
+                              borderRadius: 6,
+                              marginTop: 10,
+                              color: theme === "dark" ? "#fff" : "#000"
+                            }}
+                            placeholder="Edit title"
+                            placeholderTextColor={theme === "dark" ? "#999" : "#ccc"}
+                          />
+                          <DateTimePicker
+                            value={local.date}
+                            mode="datetime"
+                            display={Platform.OS === "ios" ? "inline" : "default"}
+                            onChange={(e, date) => {
+                              if (date) {
+                                setLocalState((prev) => ({
+                                  ...prev,
+                                  [event.id]: { ...prev[event.id], date }
+                                }));
+                              }
+                            }}
+                          />
+                          <Text style={{ fontWeight: "600", marginTop: 10, color: theme === "dark" ? "#fff" : "#000" }}>
+                            Edit Attendees:
                           </Text>
-                        </Pressable>
-                      ))}
-                      <Button title="✅ Confirm Edit" onPress={() => handleUpdateEvent(event.id)} />
-                    </>
-                  ) : (
-                    <Button title="✏️ Edit" onPress={() => setEditingEvent(event.id)} />
-                  )}
-
-                  <Button title="🗑️ Delete" color="red" onPress={() => handleDeleteEvent(event.id)} />
-                </View>
-              );
-            })}
-
-            <Button title="Close" onPress={() => setModalVisible(false)} />
-            </ScrollView>
+                          {roommates.map((email) => (
+                            <Pressable key={email} onPress={() => {
+                              const current = local.attendees || [];
+                              const updated = current.includes(email)
+                                ? current.filter((e) => e !== email)
+                                : [...current, email];
+                              setLocalState((prev) => ({
+                                ...prev,
+                                [event.id]: { ...prev[event.id], attendees: updated }
+                              }));
+                            }}>
+                              <Text style={{ paddingLeft: 10, color: theme === "dark" ? "#fff" : "#000" }}>
+                                {local.attendees?.includes(email) ? "✅" : "⬜️"} {email}
+                              </Text>
+                            </Pressable>
+                          ))}
+                          <Button title="✅ Confirm Edit" onPress={() => handleUpdateEvent(event.id)} />
+                        </>
+                      ) : (
+                        <Button title="✏️ Edit" onPress={() => setEditingEvent(event.id)} />
+                      )}
+  
+                      <Button title="🗑️ Delete" color="red" onPress={() => handleDeleteEvent(event.id)} />
+                    </View>
+                  );
+                })}
+  
+                <Button title="Close" onPress={() => setModalVisible(false)} />
+              </ScrollView>
+            </View>
           </View>
-        </View>
-      </Modal>
-    </KeyboardAvoidingView>
+        </Modal>
+      </KeyboardAvoidingView>
     </SafeAreaView>
-
   );
+
+
 }
