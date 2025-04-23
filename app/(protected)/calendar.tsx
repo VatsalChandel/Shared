@@ -136,8 +136,9 @@ export default function Calendar() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#f9f9f9" }}>
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"} keyboardVerticalOffset={80}>
+      <Text style={{ padding:20, fontSize: 24, fontWeight: "bold" }}>Group Calendar</Text>
+
       <ScrollView contentContainerStyle={{ padding: 20, backgroundColor: "#f9f9f9", paddingBottom: 120 }}>
-        <Text style={{ fontSize: 24, fontWeight: "bold", marginBottom: 20 }}>Group Calendar</Text>
 
         <RNCalendar
           markedDates={markedDates}
