@@ -9,6 +9,12 @@ import {
   onSnapshot,
 } from "firebase/firestore";
 
+import * as Clipboard from "expo-clipboard";
+import * as Sharing from "expo-sharing";
+import { Alert, Pressable } from "react-native";
+
+
+
 export default function Index() {
   const user = auth.currentUser;
 
@@ -132,9 +138,37 @@ export default function Index() {
         <Text style={{ fontSize: 18, color: "#555", marginBottom: 10 }}>
           Pod Name: <Text style={{ fontWeight: "500" }}>{groupName}</Text>
         </Text>
-        <Text style={{ fontSize: 16, color: "#666" }}>
-          Invite Code: <Text style={{ fontWeight: "bold" }}>{inviteCode}</Text>
-        </Text>
+
+        <Pressable
+  onPress={async () => {
+    await Clipboard.setStringAsync(inviteCode);
+    Alert.alert("Copied!", "Invite code copied to clipboard", [
+      { text: "OK" },
+      {
+        text: "Share...",
+        onPress: () => {
+          if (Sharing.isAvailableAsync()) {
+            Sharing.shareAsync("", {
+              dialogTitle: "Share your group invite code",
+              UTI: "public.text",
+              mimeType: "text/plain",
+            });
+          }
+        },
+      },
+    ]);
+  }}
+>
+  <Text style={{ fontSize: 16, color: "#666", marginBottom: 20 }}>
+    Invite Code:{" "}
+    <Text style={{ fontWeight: "bold", color: "#007AFF", textDecorationLine: "underline" }}>
+      {inviteCode} (tap to share)
+    </Text>
+  </Text>
+</Pressable>
+
+
+
       </View>
 
       <ScrollView style={{ flex: 1, backgroundColor: "#f9f9f9" }}>

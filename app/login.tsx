@@ -32,11 +32,7 @@ export default function Login() {
             Welcome Back 👋
           </Text>
       
-          {error ? (
-            <Text style={{ color: "red", marginBottom: 16, textAlign: "center" }}>
-              {error}
-            </Text>
-          ) : null}
+         
       
           <Text style={{ marginBottom: 4, fontWeight: "500" }}>Email</Text>
           <TextInput
@@ -72,8 +68,21 @@ export default function Login() {
             }}
           />
       
-          <Button title="Log In" onPress={handleLogin} />
+          <Pressable  onPress={handleLogin}>
+            <View style={{ backgroundColor: "#007bff", padding: 16, borderRadius: 8, alignItems: "center" }}>
+              <Text style={{ color: "#fff", fontWeight: "500" }}>Login</Text>
+            </View>
+          </Pressable>
       
+
+          {error ? (
+            <Text style={{ color: "red", padding: 15, textAlign: "center" }}>
+              {"Please enter a valid email and password"}
+            </Text>
+          ) : null}
+
+
+
           <View style={{ marginTop: 32, alignItems: "center" }}>
             <Text style={{ marginBottom: 8 }}>Don't have an account?</Text>
             <Pressable onPress={handleSignUp}>

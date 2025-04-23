@@ -94,10 +94,15 @@ export default function Signup() {
             }}
           />
 
-            <Button title="Sign Up" onPress={handleSignup} />
+
+          <Pressable  onPress={handleSignup}>
+            <View style={{ backgroundColor: "#007bff", padding: 16, borderRadius: 8, alignItems: "center" }}>
+              <Text style={{ color: "#fff", fontWeight: "500" }}>Sign Up</Text>
+            </View>
+          </Pressable>
 
 
-          {error ? <Text style={{ color: "red", marginBottom: 12 }}>{error}</Text> : null}
+          {error ? <Text style={{ color: "red", padding: 15, textAlign: "center" }}>{"Please enter a valid email and password"}</Text> : null}
 
 
           <View style={{ marginTop: 32, alignItems: "center" }}>
