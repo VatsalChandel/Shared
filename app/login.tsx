@@ -7,6 +7,8 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/firebase";
 import { router } from "expo-router";
 
+
+
 export default function Login() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -26,9 +28,10 @@ export default function Login() {
     };
 
 
+
     return (
         <View style={{ flex: 1, justifyContent: "center", padding: 24, backgroundColor: "#f9f9f9" }}>
-          <Text style={{ fontSize: 28, fontWeight: "bold", marginBottom: 24, textAlign: "center" }}>
+          <Text style={{ fontSize: 40, fontWeight: "bold", marginBottom: 24, textAlign: "center" }}>
             Welcome Back 👋
           </Text>
       

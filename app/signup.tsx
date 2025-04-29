@@ -46,7 +46,7 @@ export default function Signup() {
         keyboardVerticalOffset={80}
       >
         <View style={{ padding: 24 }}>
-          <Text style={{ fontSize: 28, fontWeight: "700", marginBottom: 16, textAlign: "center" }}>Create Account ☕</Text>
+          <Text style={{ fontSize: 40, fontWeight: "700", marginBottom: 16, textAlign: "center" }}>Create Account ☕</Text>
 
           <Text style={{ fontSize: 14, marginBottom: 4 }}>Name</Text>
           <TextInput
@@ -60,6 +60,8 @@ export default function Signup() {
               padding: 10,
               borderRadius: 6,
               marginBottom: 12,
+              backgroundColor: "#fff",
+
             }}
           />
 
@@ -75,6 +77,8 @@ export default function Signup() {
               padding: 10,
               borderRadius: 6,
               marginBottom: 12,
+              backgroundColor: "#fff",
+
             }}
           />
 
@@ -91,6 +95,8 @@ export default function Signup() {
               padding: 10,
               borderRadius: 6,
               marginBottom: 20,
+              backgroundColor: "#fff",
+
             }}
           />
 
