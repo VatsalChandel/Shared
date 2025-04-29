@@ -6,7 +6,26 @@ import { View, Text, TextInput, Button, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { db, auth } from "@/firebase";
 import { doc, setDoc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { collection, query, where, getDocs, deleteDoc } from "firebase/firestore";
+import { v4 as uuidv4 } from 'uuid';
+import { Timestamp, DocumentReference } from "firebase/firestore";
+import * as Crypto from "expo-crypto";
+async function wipeDatabase() {
+  const collections = ["users", "roommateGroups"];
+
+  for (const name of collections) {
+    const colRef = collection(db, name);
+    const snap = await getDocs(colRef);
+    for (const document of snap.docs) {
+      await deleteDoc(doc(db, name, document.id));
+      console.log(`Deleted ${name}/${document.id}`);
+    }
+  }
+
+  console.log("🔥 Database wiped.");
+}
+
+
 
 export default function GroupSetup() {
     const [groupName, setGroupName] = useState("");
@@ -18,66 +37,122 @@ export default function GroupSetup() {
 
     const [createdGroupId, setCreatedGroupId] = useState("");
 
-const handleCreateGroup = async () => {
-    if (!groupName || !user) return;
+    const [joining, setJoining] = useState(false);
 
-    const groupId = crypto.randomUUID();
-    const inviteCode = groupName.replace(/\s+/g, "-").toLowerCase() + "-" + Math.floor(1000 + Math.random() * 9000);
   
-
-    try {
-        await setDoc(doc(db, "roommateGroups", groupId), {
-        name: groupName,
-        inviteCode,
-        createdAt: new Date(),
-        members: [user.uid],
-        });
-
-    await setDoc(doc(db, "users", user.uid), {
-        email: user.email,
-        groupId,
-        }, { merge: true });
-    router.replace("/")
-
-    setCreatedGroupId(groupId); // show this after creation
-
-    // Optionally: router.replace("/");
-    } catch (err: any) {
-        setError(err.message);
-    }
+    const waitUntilUserIsInGroup = async (
+      ref: DocumentReference,
+      uid: string,
+      attempt = 0
+    ): Promise<void> => {
+      const snap = await getDoc(ref);
+      const members = snap.data()?.members || [];
+    
+      if (members.includes(uid)) return;
+      if (attempt > 15) throw new Error("User was not added to group in time");
+    
+      await new Promise((res) => setTimeout(res, 300));
+      return waitUntilUserIsInGroup(ref, uid, attempt + 1);
     };
+
+    const handleCreateGroup = async () => {
+      if (!groupName || !user) {
+        console.log("Missing groupName or user");
+        return;
+      }
+    
+      console.log("Creating group with name:", groupName);
+      const groupId = groupName.toLowerCase().replace(/\s+/g, "-") + "-" + Math.floor(Math.random() * 10000);
+      const inviteCode =
+        groupName.replace(/\s+/g, "-").toLowerCase() +
+        "-" +
+        Math.floor(1000 + Math.random() * 9000);
+
+      console.log("Generated groupId:", groupId);
+      console.log("Generated inviteCode:", inviteCode);
+    
+      console.log("Trying to write group to Firestore...");
+      try {
+        console.log("Writing group to Firestore...");
+        await setDoc(doc(db, "roommateGroups", groupId), {
+          name: groupName,
+          inviteCode,
+          createdAt: Timestamp.now(),
+          members: [user.uid],
+        });
+        console.log("Group written!");
+    
+        console.log("Updating user doc...");
+        await setDoc(
+          doc(db, "users", user.uid),
+          {
+            email: user.email,
+            groupId,
+          },
+          { merge: true }
+        );
+        console.log("User doc updated!");
+    
+        console.log("Navigating away...");
+        router.replace("/");
+        setCreatedGroupId(groupId);
+      } catch (err: any) {
+        console.log("🔥 Error creating group:", err);
+        setError(err.message || "Unknown error");
+      }
+    };
+    
 
 
     const handleJoinGroup = async () => {
-        if (!groupCode || !user) return;
+      if (!groupCode || !user) return;
+      setJoining(true);
+      setError("");
     
+      try {
         const q = query(
-        collection(db, "roommateGroups"),
-        where("inviteCode", "==", groupCode.trim().toLowerCase())
+          collection(db, "roommateGroups"),
+          where("inviteCode", "==", groupCode.trim().toLowerCase())
         );
     
         const snap = await getDocs(q);
     
         if (snap.empty) {
-        setError("Group not found!");
-        return;
+          setError("Group not found!");
+          setJoining(false);
+          return;
         }
     
         const groupDoc = snap.docs[0];
         const groupId = groupDoc.id;
     
+        // Step 1: Add user to group
         await updateDoc(groupDoc.ref, {
-        members: arrayUnion(user.uid),
+          members: arrayUnion(user.uid),
         });
     
-        await setDoc(doc(db, "users", user.uid), {
-        email: user.email,
-        groupId,
-        }, { merge: true });
+        // Step 2: Wait for permission to kick in
+        await waitUntilUserIsInGroup(groupDoc.ref, user.uid);
+    
+        // Step 3: Set user document
+        await setDoc(
+          doc(db, "users", user.uid),
+          {
+            email: user.email,
+            groupId,
+          },
+          { merge: true }
+        );
     
         router.replace("/");
+      } catch (err: any) {
+        console.log("🔥 Error joining group:", err);
+        setError(err.message || "An error occurred while joining the group.");
+        setJoining(false);
+      }
     };
-  
+    
+    
 
   
   return (
@@ -111,8 +186,23 @@ const handleCreateGroup = async () => {
       />
       <Button title="Join Group" onPress={handleJoinGroup} />
 
-      {error ? <Text style={{ color: "red", marginTop: 10 }}>{error}</Text> : null}
+      {joining && (
+          <Text style={{ marginTop: 10, fontStyle: "italic", color: "gray" }}>
+            Joining group...
+          </Text>
+        )}
+
+        {error ? (
+          <Text style={{ color: "red", marginTop: 10 }}>{error}</Text>
+        ) : null}
+
+      <View style={{ marginTop: 30 }}>
+        <Button title="🔥 Wipe Database (DEV ONLY)" onPress={wipeDatabase} color="red" />
+      </View>
+    
     </View>
+
+    
   );
 }
 

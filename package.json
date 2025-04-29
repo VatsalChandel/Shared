@@ -22,12 +22,14 @@
     "@react-navigation/native": "^7.0.14",
     "expo": "~52.0.46",
     "expo-blur": "~14.0.3",
+    "expo-clipboard": "~7.0.1",
     "expo-constants": "~17.0.8",
     "expo-font": "~13.0.4",
     "expo-haptics": "~14.0.1",
     "expo-linking": "~7.0.5",
     "expo-notifications": "~0.29.14",
     "expo-router": "~4.0.20",
+    "expo-sharing": "~13.0.1",
     "expo-splash-screen": "~0.29.23",
     "expo-status-bar": "~2.0.1",
     "expo-symbols": "~0.2.2",
@@ -45,8 +47,8 @@
     "react-native-toast-message": "^2.3.0",
     "react-native-web": "~0.19.13",
     "react-native-webview": "13.12.5",
-    "expo-clipboard": "~7.0.1",
-    "expo-sharing": "~13.0.1"
+    "uuid": "^11.1.0",
+    "expo-crypto": "~14.0.2"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
