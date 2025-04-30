@@ -1,12 +1,22 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { View, Text, Switch, Button, SafeAreaView, Alert } from 'react-native';
+import { View, Text, Switch, Button, SafeAreaView, Alert, Pressable } from 'react-native';
 import { ThemeContext } from '.././ThemeContext';
 import { auth, db } from "@/firebase";
 import { doc, getDoc, updateDoc, arrayRemove } from "firebase/firestore";
 import { router } from "expo-router";
 
+
+
 const Profile = () => {
+  const headingText = 40; 
+  const normalText = 20; 
+  const text = 18; 
+
+
+
   const { theme, toggleTheme } = useContext(ThemeContext);
+  const isDark = theme === "dark";
+
   const user = auth.currentUser;
   const [name, setName] = useState("");
   const [groupId, setGroupId] = useState<string | null>(null);
@@ -68,21 +78,36 @@ const Profile = () => {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: isDark ? "#121212" : "#f9f9f9" }}>
       <View style={{ padding: 20 }}>
-        <Text style={{ fontSize: 26, marginBottom: 15 }}>{name}'s Profile</Text>
-        <Text style={{ fontSize: 20, marginBottom: 15 }}>Your email: {user?.email}</Text>
 
-        <Text style={{ fontSize: 18 }}>Dark Mode</Text>
+      <Text style={{ fontSize:headingText, fontWeight: "600", marginBottom: 10, color: isDark ? "#fff" : "#000" }}>{name}'s Profile</Text>
+
+
+        <Text style={{ fontSize: 20, color: isDark ? "#ccc" : "#555", marginBottom: 10 }}>
+          Your Email: <Text style={{ fontWeight: "500", color: isDark ? "#fff" : "#000" }}>{user?.email}</Text>
+        </Text>
+
+
+        <Text style={{ fontSize: 18, color: isDark ? "#fff" : "#000" }}>Dark Mode</Text>
         <Switch value={theme === 'dark'} onValueChange={toggleTheme} />
 
-        {groupId && (
-          <Button title="Leave Group" color="orange" onPress={handleLeaveGroup} />
+          {groupId && (
+          <Pressable  onPress={handleLeaveGroup}>
+            <View style={{ marginTop:20, backgroundColor: "#007bff", padding: 16, borderRadius: 8, alignItems: "center" }}>
+              <Text style={{ color: "#fff", fontWeight: "500", fontSize:normalText }}>Leave Group</Text>
+            </View>
+          </Pressable>
         )}
 
-        <View style={{ marginTop: 20 }}>
-          <Button title="Logout" onPress={handleLogout} />
-        </View>
+
+         <Pressable  onPress={handleLogout}>
+            <View style={{ marginTop:20, backgroundColor: "#007bff", padding: 16, borderRadius: 8, alignItems: "center" }}>
+              <Text style={{ color: "#fff", fontWeight: "500", fontSize:normalText }}>Logout</Text>
+            </View>
+          </Pressable>
+
+
       </View>
     </SafeAreaView>
   );

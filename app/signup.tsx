@@ -20,6 +20,9 @@ export default function Signup() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
+  const normalText = 20; 
+
+
   const handleSignup = async () => {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -48,7 +51,7 @@ export default function Signup() {
         <View style={{ padding: 24 }}>
           <Text style={{ fontSize: 40, fontWeight: "700", marginBottom: 16, textAlign: "center" }}>Create Account ☕</Text>
 
-          <Text style={{ fontSize: 14, marginBottom: 4 }}>Name</Text>
+          <Text style={{ fontSize:normalText, marginBottom: 4 }}>Name</Text>
           <TextInput
             value={name}
             onChangeText={setName}
@@ -65,7 +68,7 @@ export default function Signup() {
             }}
           />
 
-          <Text style={{ fontSize: 14, marginBottom: 4 }}>Email</Text>
+          <Text style={{ fontSize:normalText, marginBottom: 4 }}>Email</Text>
           <TextInput
             value={email}
             onChangeText={setEmail}
@@ -82,7 +85,7 @@ export default function Signup() {
             }}
           />
 
-          <Text style={{ fontSize: 14, marginBottom: 4 }}>Password</Text>
+          <Text style={{ fontSize:normalText, marginBottom: 4 }}>Password</Text>
           <TextInput
             value={password}
             onChangeText={setPassword}
@@ -103,7 +106,7 @@ export default function Signup() {
 
           <Pressable  onPress={handleSignup}>
             <View style={{ backgroundColor: "#007bff", padding: 16, borderRadius: 8, alignItems: "center" }}>
-              <Text style={{ color: "#fff", fontWeight: "500" }}>Sign Up</Text>
+              <Text style={{ fontSize:normalText, color: "#fff", fontWeight: "500" }}>Sign Up</Text>
             </View>
           </Pressable>
 
@@ -112,9 +115,9 @@ export default function Signup() {
 
 
           <View style={{ marginTop: 32, alignItems: "center" }}>
-          <Text style={{ fontSize: 14, marginBottom: 8 }}>Already have an account?</Text>
+          <Text style={{ fontSize:normalText, marginBottom: 8 }}>Already have an account?</Text>
             <Pressable onPress={() => router.push("/login")}>
-              <Text style={{ color: "#007bff", fontWeight: "500" }}>Log In</Text>
+              <Text style={{ fontSize:normalText, color: "#007bff", fontWeight: "500" }}>Log In</Text>
             </Pressable>
           </View>
 

@@ -28,6 +28,12 @@ import { ThemeContext } from "../ThemeContext";
 
 
 export default function Chores() {
+
+  const headingText = 40; 
+  const normalText = 20; 
+  const text = 18; 
+
+
   const user = auth.currentUser;
   const [groupId, setGroupId] = useState<string | null>(null);
   const [chores, setChores] = useState<any[]>([]);
@@ -133,7 +139,7 @@ const borderColor = isDark ? "#444" : "#ccc";
     behavior={Platform.OS === "ios" ? "padding" : "height"}
     keyboardVerticalOffset={80}
   >
-    <Text style={{ padding: 20, fontSize: 24, fontWeight: "bold", color: themedText }}>
+    <Text style={{ padding: 20, fontSize: headingText, fontWeight: "bold", color: themedText }}>
       Group Chores
     </Text>
 
@@ -141,7 +147,7 @@ const borderColor = isDark ? "#444" : "#ccc";
       ListHeaderComponent={
         <View style={{ padding: 20 }}>
           {chores.length === 0 && (
-            <Text style={{ fontSize: 16, fontStyle: "italic", color: isDark ? "#aaa" : "gray" }}>
+            <Text style={{ fontSize: normalText, fontStyle: "italic", color: isDark ? "#aaa" : "gray" }}>
               No chores yet!
             </Text>
           )}
@@ -165,7 +171,7 @@ const borderColor = isDark ? "#444" : "#ccc";
           <Pressable onPress={() => toggleChoreCompleted(item.id, item.completed)}>
             <Text
               style={{
-                fontSize: 18,
+                fontSize: normalText,
                 color: item.completed ? "gray" : themedText,
                 textDecorationLine: item.completed ? "line-through" : "none",
                 marginBottom: 4,
@@ -174,15 +180,15 @@ const borderColor = isDark ? "#444" : "#ccc";
               {item.completed ? "✅" : "⬜️"} {item.text}
             </Text>
           </Pressable>
-          <Text style={{ fontSize: 12, color: isDark ? "#ccc" : "#666", marginLeft: 4 }}>
+          <Text style={{ fontSize: 16, color: isDark ? "#ccc" : "#666", marginLeft: 4 }}>
             Added by: {item.createdBy?.name}
           </Text>
-          <Text style={{ fontSize: 12, color: isDark ? "#ccc" : "#666", marginLeft: 4 }}>
+          <Text style={{ fontSize: 16, color: isDark ? "#ccc" : "#666", marginLeft: 4 }}>
             Assigned to: {Array.isArray(item.assignedTo) ? item.assignedTo.join(", ") : "N/A"}
           </Text>
           {item.completed && (
             <Pressable onPress={() => handleDeleteChore(item.id)}>
-              <Text style={{ color: "red", fontSize: 14, marginTop: 6 }}>🗑 Delete chore</Text>
+              <Text style={{ color: "red", fontSize: 16, marginTop: 6 }}>🗑 Delete chore</Text>
             </Pressable>
           )}
         </View>
@@ -199,7 +205,7 @@ const borderColor = isDark ? "#444" : "#ccc";
             shadowRadius: 4,
           }}
         >
-          <Text style={{ fontSize: 18, fontWeight: "500", marginBottom: 6, color: themedText }}>Add a Chore</Text>
+          <Text style={{ fontSize: normalText, fontWeight: "500", marginBottom: 6, color: themedText }}>Add a Chore</Text>
           <TextInput
             value={newChore}
             onChangeText={setNewChore}
@@ -214,7 +220,7 @@ const borderColor = isDark ? "#444" : "#ccc";
               marginBottom: 10,
             }}
           />
-          <Text style={{ fontWeight: "600", marginBottom: 6, color: themedText }}>Assign To:</Text>
+          <Text style={{ fontSize:normalText, fontWeight: "600", marginBottom: 6, color: themedText }}>Assign To:</Text>
           {roommates.map((email, index) => (
             <Pressable
               key={index}
@@ -224,17 +230,26 @@ const borderColor = isDark ? "#444" : "#ccc";
                 )
               }
             >
-              <Text style={{ marginLeft: 10, fontSize: 14, color: themedText }}>
+              <Text style={{ marginLeft: 10, fontSize: normalText, color: themedText, padding: 3 }}>
                 {assignedTo.includes(email) ? "✅" : "⬜️"} {email}
               </Text>
             </Pressable>
           ))}
-          <Button title="Add Chore" onPress={handleAddChore} />
+
+          <Pressable  onPress={handleAddChore}>
+            <View style={{ marginTop:20, backgroundColor: "#007bff", padding: 16, borderRadius: 8, alignItems: "center" }}>
+              <Text style={{ color: "#fff", fontWeight: "500", fontSize:normalText }}>Add Chore</Text>
+            </View>
+          </Pressable>
+
         </View>
       }
     />
   </KeyboardAvoidingView>
+  <Toast position="top" topOffset={70} />
+
 </SafeAreaView>
+
 
 
 

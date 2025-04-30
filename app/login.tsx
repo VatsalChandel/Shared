@@ -1,7 +1,7 @@
 // /app/login.tsx
 
 
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { Text, TextInput, View, Button, Pressable } from "react-native";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/firebase";
@@ -13,6 +13,11 @@ export default function Login() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
+
+    const normalText = 20; 
+
+    
+
 
     const handleLogin = async () => {
     try {
@@ -37,7 +42,7 @@ export default function Login() {
       
          
       
-          <Text style={{ marginBottom: 4, fontWeight: "500" }}>Email</Text>
+          <Text style={{ marginBottom: 4, fontWeight: "500", fontSize:normalText }}>Email</Text>
           <TextInput
             value={email}
             onChangeText={setEmail}
@@ -54,7 +59,7 @@ export default function Login() {
             }}
           />
       
-          <Text style={{ marginBottom: 4, fontWeight: "500" }}>Password</Text>
+          <Text style={{ marginBottom: 4, fontWeight: "500", fontSize:normalText }}>Password</Text>
           <TextInput
             value={password}
             onChangeText={setPassword}
@@ -73,7 +78,7 @@ export default function Login() {
       
           <Pressable  onPress={handleLogin}>
             <View style={{ backgroundColor: "#007bff", padding: 16, borderRadius: 8, alignItems: "center" }}>
-              <Text style={{ color: "#fff", fontWeight: "500" }}>Login</Text>
+              <Text style={{ color: "#fff", fontWeight: "500", fontSize:normalText }}>Login</Text>
             </View>
           </Pressable>
       
@@ -87,9 +92,9 @@ export default function Login() {
 
 
           <View style={{ marginTop: 32, alignItems: "center" }}>
-            <Text style={{ marginBottom: 8 }}>Don't have an account?</Text>
+            <Text style={{ marginBottom: 8, fontSize:normalText }}>Don't have an account?</Text>
             <Pressable onPress={handleSignUp}>
-              <Text style={{ color: "#007bff", fontWeight: "500" }}>Create an account</Text>
+              <Text style={{ color: "#007bff", fontWeight: "500", fontSize:normalText }}>Create an account</Text>
             </Pressable>
           </View>
         </View>
