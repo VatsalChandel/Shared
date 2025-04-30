@@ -83,7 +83,8 @@ export default function ProtectedLayout() {
         tabBarBackground: TabBarBackground,
         tabBarStyle: Platform.select({
           ios: { position: "absolute" },
-          default: {},
+          default: { position: "absolute", bottom: 0 },
+
         }),
       }}
     >

@@ -2,7 +2,7 @@
 
 
 import { useState } from "react";
-import { View, Text, TextInput, Button, StyleSheet } from "react-native";
+import { View, Text, TextInput, Button, StyleSheet, SafeAreaView, Pressable } from "react-native";
 import { useRouter } from "expo-router";
 import { db, auth } from "@/firebase";
 import { doc, setDoc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
@@ -10,7 +10,10 @@ import { collection, query, where, getDocs, deleteDoc } from "firebase/firestore
 import { v4 as uuidv4 } from 'uuid';
 import { Timestamp, DocumentReference } from "firebase/firestore";
 import * as Crypto from "expo-crypto";
+
+
 async function wipeDatabase() {
+
   const collections = ["users", "roommateGroups"];
 
   for (const name of collections) {
@@ -18,8 +21,10 @@ async function wipeDatabase() {
     const snap = await getDocs(colRef);
     for (const document of snap.docs) {
       await deleteDoc(doc(db, name, document.id));
+
       console.log(`Deleted ${name}/${document.id}`);
     }
+    await deleteDoc(doc(db, "tQoaaIpXQSg5e4A4bpAyTEKehKA2"));
   }
 
   console.log("🔥 Database wiped.");
@@ -39,6 +44,10 @@ export default function GroupSetup() {
 
     const [joining, setJoining] = useState(false);
 
+    if (!user) {  
+      router.replace("/login");
+      return null;
+    }
   
     const waitUntilUserIsInGroup = async (
       ref: DocumentReference,
@@ -156,8 +165,12 @@ export default function GroupSetup() {
 
   
   return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+      <View style={{ padding: 20 }}>
+      <Text style={{ fontSize:40, fontWeight: "600", marginBottom: 10, color: "#000" }}>Join or Create Group</Text>
+      </View>
+
     <View style={styles.container}>
-      <Text style={styles.title}>Join or Create a Roommate Group</Text>
 
       <Text style={styles.label}>Create Group</Text>
       <TextInput
@@ -166,7 +179,13 @@ export default function GroupSetup() {
         onChangeText={setGroupName}
         style={styles.input}
       />
-        <Button title="Create Group" onPress={handleCreateGroup} />
+
+      <Pressable  onPress={handleCreateGroup} style={{ marginBottom:80 }}>
+        <View style={{ marginTop:10, backgroundColor: "#007bff", padding: 16, borderRadius: 8, alignItems: "center" }}>
+          <Text style={{ color: "#fff", fontWeight: "500", fontSize:20 }}>Create Group</Text>
+        </View>
+      </Pressable>
+      
 
         {createdGroupId ? (
         <Text style={{ marginTop: 20 }}>
@@ -184,7 +203,13 @@ export default function GroupSetup() {
         style={styles.input}
         autoCapitalize="none"
       />
-      <Button title="Join Group" onPress={handleJoinGroup} />
+
+      <Pressable  onPress={handleJoinGroup}>
+        <View style={{ marginTop:10, backgroundColor: "#007bff", padding: 16, borderRadius: 8, alignItems: "center" }}>
+          <Text style={{ color: "#fff", fontWeight: "500", fontSize:20 }}>Join Group</Text>
+        </View>
+      </Pressable>
+      
 
       {joining && (
           <Text style={{ marginTop: 10, fontStyle: "italic", color: "gray" }}>
@@ -201,6 +226,7 @@ export default function GroupSetup() {
       </View>
     
     </View>
+    </SafeAreaView>
 
     
   );
@@ -212,13 +238,14 @@ const styles = StyleSheet.create({
     paddingTop: 100,
   },
   title: {
-    fontSize: 20,
+    fontSize: 40,
     fontWeight: "600",
     marginBottom: 30,
   },
   label: {
     marginTop: 20,
     fontWeight: "500",
+    fontSize: 20
   },
   input: {
     borderWidth: 1,

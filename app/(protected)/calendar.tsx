@@ -22,6 +22,11 @@ LocaleConfig.locales["en"] = LocaleConfig.locales[""];
 LocaleConfig.defaultLocale = "en";
 
 export default function Calendar() {
+  const headingText = 40; 
+  const normalText = 20; 
+  const text = 18; 
+
+
   const { theme } = useContext(ThemeContext); // 👈 gets the current theme
 
   const user = auth.currentUser;
@@ -148,7 +153,7 @@ export default function Calendar() {
       >
         <Text style={{
           padding: 20,
-          fontSize: 24,
+          fontSize: headingText,
           fontWeight: "bold",
           color: theme === "dark" ? "#fff" : "#000"
         }}>
@@ -209,7 +214,7 @@ export default function Calendar() {
             shadowRadius: 4,
             marginBottom: 30
           }}>
-            <Text style={{ fontSize: 18, fontWeight: "600", marginBottom: 10, color: theme === "dark" ? "#fff" : "#000" }}>
+            <Text style={{ fontSize:normalText, fontWeight: "600", marginBottom: 10, color: theme === "dark" ? "#fff" : "#000" }}>
               Add New Event
             </Text>
             <TextInput
@@ -227,9 +232,17 @@ export default function Calendar() {
               }}
             />
             <Pressable onPress={() => setShowDatePicker(true)}>
-              <Text style={{ fontSize: 16, color: theme === "dark" ? "#4da6ff" : "blue", marginBottom: 10 }}>
-                📅 {selectedDate.toLocaleString()} (Tap to change)
+              <Text style={{ fontSize: normalText, color: theme === "dark" ? "#4da6ff" : "blue", marginBottom: 10 }}>
+              📅 {selectedDate.toLocaleString([], {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+                hour: "numeric",
+                minute: "2-digit",
+                hour12: true,
+              })} (Tap to change)
               </Text>
+
             </Pressable>
             {showDatePicker && (
               <DateTimePicker
@@ -240,9 +253,11 @@ export default function Calendar() {
                   setShowDatePicker(false);
                   if (date) setSelectedDate(date);
                 }}
+                themeVariant={theme === "dark" ? "dark" : "light"} // 👈 add this
+
               />
             )}
-            <Text style={{ fontWeight: "500", marginBottom: 6, color: theme === "dark" ? "#fff" : "#000" }}>
+            <Text style={{ paddingTop:25, fontSize:normalText, fontWeight: "500", marginBottom: 6, color: theme === "dark" ? "#fff" : "#000" }}>
               Select Attendees:
             </Text>
             {roommates.map((email, i) => (
@@ -254,12 +269,20 @@ export default function Calendar() {
                   )
                 }
               >
-                <Text style={{ fontSize: 14, paddingLeft: 4, color: theme === "dark" ? "#fff" : "#000" }}>
+                <Text style={{ fontSize: normalText, paddingLeft: 4, marginBottom:6, color: theme === "dark" ? "#fff" : "#000" }}>
                   {selectedAttendees.includes(email) ? "✅" : "⬜️"} {email}
                 </Text>
               </Pressable>
             ))}
-            <Button title="Add Event" onPress={handleAddEvent} />
+
+
+          <Pressable  onPress={handleAddEvent}>
+            <View style={{ marginTop:20, backgroundColor: "#007bff", padding: 16, borderRadius: 8, alignItems: "center" }}>
+              <Text style={{ color: "#fff", fontWeight: "500", fontSize:normalText }}>Add Event</Text>
+            </View>
+          </Pressable>
+
+
           </View>
         </ScrollView>
   
@@ -278,7 +301,7 @@ export default function Calendar() {
               paddingVertical: 10
             }}>
               <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 20 }}>
-                <Text style={{ fontSize: 20, fontWeight: "bold", marginBottom: 10, color: theme === "dark" ? "#fff" : "#000" }}>
+                <Text style={{ fontSize: normalText, fontWeight: "bold", marginBottom: 10, color: theme === "dark" ? "#fff" : "#000" }}>
                   Events
                 </Text>
   
@@ -289,13 +312,13 @@ export default function Calendar() {
   
                   return (
                     <View key={event.id} style={{ marginBottom: 16, paddingBottom: 10, borderBottomWidth: 1, borderColor: "#eee" }}>
-                      <Text style={{ fontSize: 16, fontWeight: "600", color: theme === "dark" ? "#fff" : "#000" }}>
+                      <Text style={{ fontSize: normalText, fontWeight: "600", color: theme === "dark" ? "#fff" : "#000" }}>
                         {event.title}
                       </Text>
-                      <Text style={{ fontSize: 14, color: theme === "dark" ? "#bbb" : "#555" }}>
+                      <Text style={{ fontSize: text, color: theme === "dark" ? "#bbb" : "#555" }}>
                         {event.displayDate}
                       </Text>
-                      <Text style={{ fontSize: 13, color: "#888" }}>
+                      <Text style={{ fontSize: text, color: "#888" }}>
                         Created by: {event.createdBy?.email}
                       </Text>
   
@@ -331,7 +354,7 @@ export default function Calendar() {
                               }
                             }}
                           />
-                          <Text style={{ fontWeight: "600", marginTop: 10, color: theme === "dark" ? "#fff" : "#000" }}>
+                          <Text style={{ fontSize:text, fontWeight: "600", marginTop: 10, color: theme === "dark" ? "#fff" : "#000" }}>
                             Edit Attendees:
                           </Text>
                           {roommates.map((email) => (
@@ -345,7 +368,7 @@ export default function Calendar() {
                                 [event.id]: { ...prev[event.id], attendees: updated }
                               }));
                             }}>
-                              <Text style={{ paddingLeft: 10, color: theme === "dark" ? "#fff" : "#000" }}>
+                              <Text style={{ marginBottom:6, fontSize:text, paddingLeft: 10, color: theme === "dark" ? "#fff" : "#000" }}>
                                 {local.attendees?.includes(email) ? "✅" : "⬜️"} {email}
                               </Text>
                             </Pressable>
