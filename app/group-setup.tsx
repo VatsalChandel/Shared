@@ -24,7 +24,6 @@ async function wipeDatabase() {
 
       console.log(`Deleted ${name}/${document.id}`);
     }
-    await deleteDoc(doc(db, "tQoaaIpXQSg5e4A4bpAyTEKehKA2"));
   }
 
   console.log("🔥 Database wiped.");
